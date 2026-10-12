@@ -22,6 +22,7 @@
 #include "info_cluster.h"
 #include "application_settings.h"
 #include "transmission.h"
+#include "gamepad_controller.h"
 
 #include "delta.h"
 #include "dtv.h"
@@ -87,6 +88,7 @@ class EngineSimApplication {
         Simulator *getSimulator() { return m_simulator; }
         InfoCluster *getInfoCluster() { return m_infoCluster; }
         ApplicationSettings* getAppSettings() { return &m_applicationSettings; }
+        GamepadController *getGamepad() { return &m_gamepad; }
 
     protected:
         void loadScript();
@@ -96,6 +98,7 @@ class EngineSimApplication {
         void refreshUserInterface();
 
     protected:
+        GamepadController m_gamepad;
         double m_speedSetting = 1.0;
         double m_targetSpeedSetting = 1.0;
 

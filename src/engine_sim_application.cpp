@@ -202,6 +202,23 @@ void EngineSimApplication::initialize() {
 void EngineSimApplication::process(float frame_dt) {
     frame_dt = static_cast<float>(clamp(frame_dt, 1 / 200.0f, 1 / 30.0f));
 
+    m_gamepad.update(frame_dt);
+    if (m_gamepad.wasConnectedThisFrame()) {
+        m_infoCluster->setLogMessage("XBOX CONTROLLER CONNECTED");
+    }
+    else if (m_gamepad.wasDisconnectedThisFrame()) {
+        m_infoCluster->setLogMessage("XBOX CONTROLLER DISCONNECTED");
+    }
+
+    if (m_gamepad.isConnected()) {
+        if (std::abs(m_gamepad.getRightStickX()) > 0.05f) {
+            m_displayAngle += m_gamepad.getRightStickX() * frame_dt * 2.0f;
+        }
+        if (m_gamepad.isButtonPressed(XINPUT_GAMEPAD_RIGHT_THUMB)) {
+            m_displayAngle = 0.0f;
+        }
+    }
+
     double speed = 1.0 / 1.0;
     if (m_engine.IsKeyDown(ysKey::Code::N1)) {
         speed = 1 / 10.0;
@@ -422,6 +439,7 @@ void EngineSimApplication::run() {
 }
 
 void EngineSimApplication::destroy() {
+    m_gamepad.setVibration(0.0f, 0.0f);
     m_shaderSet.Destroy();
 
     m_engine.GetDevice()->DestroyGPUBuffer(m_geometryVertexBuffer);
@@ -791,6 +809,10 @@ void EngineSimApplication::processEngineInput() {
         m_targetSpeedSetting = clamp(m_targetSpeedSetting + mouseWheelDelta * 0.0001);
     }
 
+    if (m_gamepad.isConnected() && m_gamepad.getRightTrigger() > 0.0f) {
+        m_targetSpeedSetting = (std::max)(m_targetSpeedSetting, static_cast<double>(m_gamepad.getRightTrigger()));
+    }
+
     if (prevTargetThrottle != m_targetSpeedSetting) {
         m_infoCluster->setLogMessage("Speed control set to " + std::to_string(m_targetSpeedSetting));
     }
@@ -814,7 +836,7 @@ void EngineSimApplication::processEngineInput() {
         m_infoCluster->setLogMessage("[,] - Set render layer to " + std::to_string(getViewParameters().Layer0));
     }
 
-    if (m_engine.ProcessKeyDown(ysKey::Code::D)) {
+    if (m_engine.ProcessKeyDown(ysKey::Code::D) || m_gamepad.isButtonPressed(XINPUT_GAMEPAD_Y)) {
         m_simulator->m_dyno.m_enabled = !m_simulator->m_dyno.m_enabled;
 
         const std::string msg = m_simulator->m_dyno.m_enabled
@@ -823,7 +845,7 @@ void EngineSimApplication::processEngineInput() {
         m_infoCluster->setLogMessage(msg);
     }
 
-    if (m_engine.ProcessKeyDown(ysKey::Code::H)) {
+    if (m_engine.ProcessKeyDown(ysKey::Code::H) || m_gamepad.isButtonPressed(XINPUT_GAMEPAD_B)) {
         m_simulator->m_dyno.m_hold = !m_simulator->m_dyno.m_hold;
 
         const std::string msg = m_simulator->m_dyno.m_hold
@@ -857,7 +879,7 @@ void EngineSimApplication::processEngineInput() {
     m_simulator->m_dyno.m_rotationSpeed = m_dynoSpeed;
 
     const bool prevStarterEnabled = m_simulator->m_starterMotor.m_enabled;
-    if (m_engine.IsKeyDown(ysKey::Code::S)) {
+    if (m_engine.IsKeyDown(ysKey::Code::S) || m_gamepad.isButtonDown(XINPUT_GAMEPAD_X)) {
         m_simulator->m_starterMotor.m_enabled = true;
     }
     else {
@@ -871,7 +893,7 @@ void EngineSimApplication::processEngineInput() {
         m_infoCluster->setLogMessage(msg);
     }
 
-    if (m_engine.ProcessKeyDown(ysKey::Code::A)) {
+    if (m_engine.ProcessKeyDown(ysKey::Code::A) || m_gamepad.isButtonPressed(XINPUT_GAMEPAD_A)) {
         m_simulator->getEngine()->getIgnitionModule()->m_enabled =
             !m_simulator->getEngine()->getIgnitionModule()->m_enabled;
 
@@ -881,13 +903,17 @@ void EngineSimApplication::processEngineInput() {
         m_infoCluster->setLogMessage(msg);
     }
 
-    if (m_engine.ProcessKeyDown(ysKey::Code::Up)) {
+    if (m_engine.ProcessKeyDown(ysKey::Code::Up) ||
+        m_gamepad.isButtonPressed(XINPUT_GAMEPAD_RIGHT_SHOULDER) ||
+        m_gamepad.isButtonPressed(XINPUT_GAMEPAD_DPAD_UP)) {
         m_simulator->getTransmission()->changeGear(m_simulator->getTransmission()->getGear() + 1);
 
         m_infoCluster->setLogMessage(
             "UPSHIFTED TO " + std::to_string(m_simulator->getTransmission()->getGear() + 1));
     }
-    else if (m_engine.ProcessKeyDown(ysKey::Code::Down)) {
+    else if (m_engine.ProcessKeyDown(ysKey::Code::Down) ||
+             m_gamepad.isButtonPressed(XINPUT_GAMEPAD_LEFT_SHOULDER) ||
+             m_gamepad.isButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN)) {
         m_simulator->getTransmission()->changeGear(m_simulator->getTransmission()->getGear() - 1);
 
         if (m_simulator->getTransmission()->getGear() != -1) {
@@ -913,6 +939,11 @@ void EngineSimApplication::processEngineInput() {
         m_targetClutchPressure = 1.0;
     }
 
+    // Xbox Controller: Left Trigger for analog clutch modulation
+    if (m_gamepad.isConnected() && m_gamepad.getLeftTrigger() > 0.0f) {
+        m_targetClutchPressure = 1.0 - static_cast<double>(m_gamepad.getLeftTrigger());
+    }
+
     m_targetClutchPressure = clamp(m_targetClutchPressure);
 
     double clutchRC = 0.001;
@@ -923,6 +954,34 @@ void EngineSimApplication::processEngineInput() {
     const double clutch_s = dt / (dt + clutchRC);
     m_clutchPressure = m_clutchPressure * (1 - clutch_s) + m_targetClutchPressure * clutch_s;
     m_simulator->getTransmission()->setClutchPressure(m_clutchPressure);
+
+    // Xbox Controller: Haptic force feedback rumble
+    if (m_gamepad.isConnected()) {
+        float lowFreqVib = 0.0f;
+        float highFreqVib = 0.0f;
+
+        if (m_simulator->m_starterMotor.m_enabled) {
+            lowFreqVib += 0.4f;
+        }
+
+        if (m_iceEngine != nullptr) {
+            const double rpm = units::toRpm(m_iceEngine->getRpm());
+            const double redline = units::toRpm(m_iceEngine->getRedline());
+            if (rpm > 100.0 && redline > 0.0) {
+                float rpmRatio = static_cast<float>(rpm / redline);
+                rpmRatio = (std::min)(1.0f, (std::max)(0.0f, rpmRatio));
+
+                highFreqVib += rpmRatio * 0.35f;
+
+                if (rpm >= redline * 0.96) {
+                    lowFreqVib += 0.5f;
+                    highFreqVib = 0.75f;
+                }
+            }
+        }
+
+        m_gamepad.setVibration(lowFreqVib, highFreqVib);
+    }
 }
 
 void EngineSimApplication::renderScene() {

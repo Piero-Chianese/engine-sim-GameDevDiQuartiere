@@ -237,11 +237,13 @@ add_executable(engine-sim-app WIN32
     src/load_simulation_cluster.cpp
     src/mixer_cluster.cpp
     src/info_cluster.cpp
+    src/gamepad_controller.cpp
 
     # Include files
     include/delta.h
     include/dtv.h
     include/engine_sim_application.h
+    include/gamepad_controller.h
     include/geometry_generator.h
     include/simulation_object.h
     include/piston_object.h
@@ -276,6 +278,7 @@ add_executable(engine-sim-app WIN32
 
 target_link_libraries(engine-sim-app
     engine-sim
+    Xinput
 )
 
 if (DTV)
