@@ -15,11 +15,11 @@ private node wires {
 private node mazda_r26b_head {
     input intake_camshaft;
     input exhaust_camshaft;
-    input chamber_volume: 65.4 * units.cc;
-    input intake_runner_volume: 180.0 * units.cc;
+    input chamber_volume: 45.0 * units.cc;
+    input intake_runner_volume: 150.0 * units.cc;
     input intake_runner_cross_section_area: 12.0 * units.cm2;
-    input exhaust_runner_volume: 80.0 * units.cc;
-    input exhaust_runner_cross_section_area: 14.0 * units.cm2;
+    input exhaust_runner_volume: 60.0 * units.cc;
+    input exhaust_runner_cross_section_area: 12.0 * units.cm2;
 
     input flow_attenuation: 1.0;
     input lift_scale: 1.0;
@@ -30,29 +30,27 @@ private node mazda_r26b_head {
     intake_flow
         .add_flow_sample(0 * lift_scale, 0 * flow_attenuation)
         .add_flow_sample(50 * lift_scale, 50 * flow_attenuation)
-        .add_flow_sample(100 * lift_scale, 110 * flow_attenuation)
-        .add_flow_sample(150 * lift_scale, 175 * flow_attenuation)
-        .add_flow_sample(200 * lift_scale, 230 * flow_attenuation)
-        .add_flow_sample(250 * lift_scale, 280 * flow_attenuation)
-        .add_flow_sample(300 * lift_scale, 320 * flow_attenuation)
-        .add_flow_sample(350 * lift_scale, 350 * flow_attenuation)
-        .add_flow_sample(400 * lift_scale, 370 * flow_attenuation)
-        .add_flow_sample(450 * lift_scale, 385 * flow_attenuation)
-        .add_flow_sample(500 * lift_scale, 395 * flow_attenuation)
+        .add_flow_sample(100 * lift_scale, 105 * flow_attenuation)
+        .add_flow_sample(150 * lift_scale, 165 * flow_attenuation)
+        .add_flow_sample(200 * lift_scale, 220 * flow_attenuation)
+        .add_flow_sample(250 * lift_scale, 270 * flow_attenuation)
+        .add_flow_sample(300 * lift_scale, 310 * flow_attenuation)
+        .add_flow_sample(350 * lift_scale, 340 * flow_attenuation)
+        .add_flow_sample(400 * lift_scale, 360 * flow_attenuation)
+        .add_flow_sample(450 * lift_scale, 375 * flow_attenuation)
 
     function exhaust_flow(50 * units.thou)
     exhaust_flow
         .add_flow_sample(0 * lift_scale, 0 * flow_attenuation)
-        .add_flow_sample(50 * lift_scale, 45 * flow_attenuation)
-        .add_flow_sample(100 * lift_scale, 95 * flow_attenuation)
-        .add_flow_sample(150 * lift_scale, 150 * flow_attenuation)
-        .add_flow_sample(200 * lift_scale, 205 * flow_attenuation)
-        .add_flow_sample(250 * lift_scale, 255 * flow_attenuation)
-        .add_flow_sample(300 * lift_scale, 295 * flow_attenuation)
-        .add_flow_sample(350 * lift_scale, 325 * flow_attenuation)
-        .add_flow_sample(400 * lift_scale, 345 * flow_attenuation)
-        .add_flow_sample(450 * lift_scale, 360 * flow_attenuation)
-        .add_flow_sample(500 * lift_scale, 370 * flow_attenuation)
+        .add_flow_sample(50 * lift_scale, 40 * flow_attenuation)
+        .add_flow_sample(100 * lift_scale, 90 * flow_attenuation)
+        .add_flow_sample(150 * lift_scale, 140 * flow_attenuation)
+        .add_flow_sample(200 * lift_scale, 190 * flow_attenuation)
+        .add_flow_sample(250 * lift_scale, 235 * flow_attenuation)
+        .add_flow_sample(300 * lift_scale, 275 * flow_attenuation)
+        .add_flow_sample(350 * lift_scale, 305 * flow_attenuation)
+        .add_flow_sample(400 * lift_scale, 325 * flow_attenuation)
+        .add_flow_sample(450 * lift_scale, 340 * flow_attenuation)
 
     cylinder_head head(
         chamber_volume: chamber_volume,
@@ -73,7 +71,7 @@ private node mazda_r26b_camshaft {
     input lobe_profile;
     input intake_lobe_profile: lobe_profile;
     input exhaust_lobe_profile: lobe_profile;
-    input lobe_separation: 104 * units.deg;
+    input lobe_separation: 106 * units.deg;
     input intake_lobe_center: lobe_separation;
     input exhaust_lobe_center: lobe_separation;
     input advance: 0 * units.deg;
@@ -92,17 +90,18 @@ private node mazda_r26b_camshaft {
 
     label rot360(360 * units.deg)
 
-    // Firing order: 1 - 3 - 2 - 4 (spaced at 0, 180, 360, 540 deg)
+    // Standard Flat-Plane Inline-4 Timing (Cyl 1, Cyl 2, Cyl 3, Cyl 4)
+    // Firing order: 1 - 2 - 4 - 3
     _exhaust_cam_0
         .add_lobe(rot360 - exhaust_lobe_center + (0.0 / 4) * cycle)
-        .add_lobe(rot360 - exhaust_lobe_center + (2.0 / 4) * cycle)
         .add_lobe(rot360 - exhaust_lobe_center + (1.0 / 4) * cycle)
         .add_lobe(rot360 - exhaust_lobe_center + (3.0 / 4) * cycle)
+        .add_lobe(rot360 - exhaust_lobe_center + (2.0 / 4) * cycle)
     _intake_cam_0
         .add_lobe(rot360 + intake_lobe_center + (0.0 / 4) * cycle)
-        .add_lobe(rot360 + intake_lobe_center + (2.0 / 4) * cycle)
         .add_lobe(rot360 + intake_lobe_center + (1.0 / 4) * cycle)
         .add_lobe(rot360 + intake_lobe_center + (3.0 / 4) * cycle)
+        .add_lobe(rot360 + intake_lobe_center + (2.0 / 4) * cycle)
 }
 
 public node mazda_r26b_engine {
@@ -110,18 +109,19 @@ public node mazda_r26b_engine {
 
     engine engine(
         name: "Mazda R26B 4-Rotor (787B)",
-        starter_torque: 80 * units.lb_ft,
-        starter_speed: 1000 * units.rpm,
-        redline: 9500 * units.rpm,
+        starter_torque: 150 * units.lb_ft,
+        starter_speed: 1200 * units.rpm,
+        redline: 10500 * units.rpm,
         fuel: fuel(
-            max_burning_efficiency: 0.95,
-            max_dilution_effect: 1.5,
-            burning_efficiency_randomness: 0.5
+            max_turbulence_effect: 4.0,
+            max_dilution_effect: 10.0,
+            max_burning_efficiency: 1.0,
+            burning_efficiency_randomness: 0.05
         ),
-        throttle_gamma: 2.5,
+        throttle_gamma: 2.0,
         hf_gain: 0.015,
-        noise: 0.6,
-        jitter: 0.3,
+        noise: 0.4,
+        jitter: 0.1,
         simulation_frequency: 18000
     )
 
@@ -135,16 +135,15 @@ public node mazda_r26b_engine {
 
     crankshaft c0(
         throw: stroke / 2,
-        flywheel_mass: 6 * units.lb,
-        mass: 12 * units.lb,
-        friction_torque: 8.0 * units.lb_ft,
-        moment_of_inertia: 0.05,
+        flywheel_mass: 14 * units.lb,
+        mass: 18 * units.lb,
+        friction_torque: 3.0 * units.lb_ft,
+        moment_of_inertia: 0.06,
         position_x: 0.0,
         position_y: 0.0,
         tdc: 90 * units.deg
     )
 
-    // 4-rotor shaft: phased at 90 / 180 degree increments
     rod_journal rj0(angle: 0.0 * units.deg)
     rod_journal rj1(angle: 180.0 * units.deg)
     rod_journal rj2(angle: 180.0 * units.deg)
@@ -156,41 +155,41 @@ public node mazda_r26b_engine {
         .add_rod_journal(rj3)
 
     piston_parameters piston_params(
-        mass: 380 * units.g,
+        mass: 350 * units.g,
         compression_height: compression_height,
         wrist_pin_position: 0.0,
         displacement: 0.0
     )
 
     connecting_rod_parameters cr_params(
-        mass: 420 * units.g,
+        mass: 400 * units.g,
         moment_of_inertia: 0.0018,
         center_of_mass: 0.0,
         length: rod_length
     )
 
     intake intake(
-        plenum_volume: 5.0 * units.L,
-        plenum_cross_section_area: 18.0 * units.cm2,
-        intake_flow_rate: k_carb(1200.0),
-        runner_flow_rate: k_carb(500.0),
+        plenum_volume: 3.5 * units.L,
+        plenum_cross_section_area: 16.0 * units.cm2,
+        intake_flow_rate: k_carb(1000.0),
+        runner_flow_rate: k_carb(450.0),
         runner_length: 6.0 * units.inch,
-        idle_flow_rate: k_carb(0.08),
-        idle_throttle_plate_position: 0.994,
-        velocity_decay: 0.6
+        idle_flow_rate: k_carb(0.0),
+        idle_throttle_plate_position: 0.9975,
+        velocity_decay: 0.5
     )
 
     exhaust_system_parameters es_params(
-        outlet_flow_rate: k_carb(1500.0),
-        primary_tube_length: 24.0 * units.inch,
-        primary_flow_rate: k_carb(700.0),
+        outlet_flow_rate: k_carb(1400.0),
+        primary_tube_length: 28.0 * units.inch,
+        primary_flow_rate: k_carb(600.0),
         velocity_decay: 1.0,
         volume: 8.0 * units.L
     )
 
     exhaust_system exhaust0(
         es_params,
-        audio_volume: 2.2,
+        audio_volume: 1.8,
         impulse_response: ir_lib.minimal_muffling_02
     )
 
@@ -241,18 +240,18 @@ public node mazda_r26b_engine {
     engine.add_cylinder_bank(b0)
     engine.add_crankshaft(c0)
 
-    // Peripheral Port race cam profile
+    // Peripheral Port high lift cam profile
     harmonic_cam_lobe intake_lobe(
-        duration_at_50_thou: 280 * units.deg,
+        duration_at_50_thou: 250 * units.deg,
         gamma: 1.2,
-        lift: 440 * units.thou,
+        lift: 390 * units.thou,
         steps: 100
     )
 
     harmonic_cam_lobe exhaust_lobe(
-        duration_at_50_thou: 270 * units.deg,
+        duration_at_50_thou: 240 * units.deg,
         gamma: 1.2,
-        lift: 420 * units.thou,
+        lift: 360 * units.thou,
         steps: 100
     )
 
@@ -260,8 +259,8 @@ public node mazda_r26b_engine {
         lobe_profile: "N/A",
         intake_lobe_profile: intake_lobe,
         exhaust_lobe_profile: exhaust_lobe,
-        intake_lobe_center: 100 * units.deg,
-        exhaust_lobe_center: 98 * units.deg,
+        intake_lobe_center: 106 * units.deg,
+        exhaust_lobe_center: 104 * units.deg,
         base_radius: 500 * units.thou
     )
 
@@ -274,13 +273,12 @@ public node mazda_r26b_engine {
 
     function timing_curve(1000 * units.rpm)
     timing_curve
-        .add_sample(0000 * units.rpm, 20 * units.deg)
+        .add_sample(0000 * units.rpm, 18 * units.deg)
         .add_sample(1000 * units.rpm, 22 * units.deg)
-        .add_sample(2000 * units.rpm, 28 * units.deg)
-        .add_sample(3000 * units.rpm, 36 * units.deg)
-        .add_sample(5000 * units.rpm, 44 * units.deg)
-        .add_sample(7000 * units.rpm, 48 * units.deg)
-        .add_sample(9000 * units.rpm, 50 * units.deg)
+        .add_sample(2000 * units.rpm, 30 * units.deg)
+        .add_sample(4000 * units.rpm, 38 * units.deg)
+        .add_sample(7000 * units.rpm, 44 * units.deg)
+        .add_sample(10000 * units.rpm, 46 * units.deg)
 
     ignition_module ignition_module(
         timing_curve: timing_curve,
@@ -289,9 +287,9 @@ public node mazda_r26b_engine {
     )
     ignition_module
         .connect_wire(wires.wire1, (0.0 / 4.0) * cycle)
-        .connect_wire(wires.wire3, (1.0 / 4.0) * cycle)
-        .connect_wire(wires.wire2, (2.0 / 4.0) * cycle)
-        .connect_wire(wires.wire4, (3.0 / 4.0) * cycle)
+        .connect_wire(wires.wire2, (1.0 / 4.0) * cycle)
+        .connect_wire(wires.wire4, (2.0 / 4.0) * cycle)
+        .connect_wire(wires.wire3, (3.0 / 4.0) * cycle)
 
     engine.add_ignition_module(ignition_module)
 }
